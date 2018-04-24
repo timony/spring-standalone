@@ -1,0 +1,2 @@
+scheduler:
+  addTaskUri: /api/v2/task
