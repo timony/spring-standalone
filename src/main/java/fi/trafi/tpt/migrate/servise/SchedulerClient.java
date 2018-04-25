@@ -29,10 +29,10 @@ public class SchedulerClient {
     String schedulerUrl;
 
     public void createTask(Task task) {
-        log.info("Creating task group:{} name:{}", task.getGroupName(), task.getJobName());
+        log.info("Creating {}", task);
 
         if (logService.alreadyAdded(task)) {
-            log.info("Task {} alrady added to scheduler, skipping", task);
+            log.info("{} alrady added to scheduler, skipping", task);
             return;
         }
 
@@ -44,6 +44,11 @@ public class SchedulerClient {
         ResponseEntity<Task> response =
                 restTemplate.postForEntity(uri.toUriString(), request, Task.class);
 
-        logService.publishResult(task, response.getStatusCode().equals(HttpStatus.CREATED));
+        if (response.getStatusCode().equals(HttpStatus.CREATED)) {
+            logService.logSuccess(task, response.getStatusCode().toString());
+        } else {
+            logService.logFailure(task, response.toString());
+        }
+        log.info("Done");
     }
 }

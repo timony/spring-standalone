@@ -16,6 +16,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
+import javax.swing.text.html.Option;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -49,7 +50,7 @@ public class ExecutionLogService {
 
     @PreDestroy
     public void preDestroy() {
-
+        log.info("Writing logs to {}", logFile);
         try {
             objectMapper.writeValue(logFile, executionLogs);
         } catch (IOException e) {
@@ -69,27 +70,46 @@ public class ExecutionLogService {
 
     }
 
-    public void publishResult(Task task, boolean successful) {
+    public void logSuccess(Task task, String message) {
+        Optional<TaskExecutionLog> first = find(task);
+        if(first.isPresent()) {
+            first.get().setSuccessful(true);
+            first.get().setMessage(message);
+        } else {
+            TaskExecutionLog log = TaskExecutionLog.builder()
+                    .group(task.getGroupName())
+                    .task(task.getJobName())
+                    .successful(true)
+                    .message(message)
+                    .build();
+            executionLogs.add(log);
+        }
+    }
 
+    public void logFailure(Task task, String message) {
+        Optional<TaskExecutionLog> first = find(task);
+        if (first.isPresent()) {
+            first.get().setSuccessful(false);
+            first.get().setMessage(message);
+        } else {
+            TaskExecutionLog log = TaskExecutionLog.builder()
+                    .group(task.getGroupName())
+                    .task(task.getJobName())
+                    .successful(false)
+                    .message(message)
+                    .build();
+            executionLogs.add(log);
+        }
+    }
 
-        Optional<TaskExecutionLog> first = executionLogs.stream()
+    private Optional<TaskExecutionLog> find(Task task) {
+        return executionLogs.stream()
                 .filter(theLog ->
                         theLog.getGroup().equals(task.getGroupName())
                                 &&
                                 theLog.getTask().equals(task.getJobName())
                 )
                 .findFirst();
-
-        if(first.isPresent()) {
-            first.get().setSuccessful(successful);
-        } else {
-            TaskExecutionLog log = TaskExecutionLog.builder()
-                    .group(task.getGroupName())
-                    .task(task.getJobName())
-                    .successful(successful)
-                    .build();
-            executionLogs.add(log);
-        }
     }
 
     private void readLog(File executionLog) {

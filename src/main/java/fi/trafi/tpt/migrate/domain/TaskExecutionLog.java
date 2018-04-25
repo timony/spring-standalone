@@ -14,4 +14,5 @@ public class TaskExecutionLog {
     String group;
     String task;
     boolean successful;
+    String message;
 }
