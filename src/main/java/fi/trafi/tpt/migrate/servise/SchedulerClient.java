@@ -9,6 +9,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.util.UriComponents;
+import org.springframework.web.util.UriComponentsBuilder;
 
 @Service
 @Slf4j
@@ -17,20 +19,31 @@ public class SchedulerClient {
     @Autowired
     RestTemplate restTemplate;
 
-    @Value("scheduler.addTaskUri")
+    @Autowired
+    ExecutionLogService logService;
+
+    @Value("${scheduler.addTaskUri}")
     String addTaskUri;
+
+    @Value("${eUrl}")
+    String schedulerUrl;
 
     public void createTask(Task task) {
         log.info("Creating task group:{} name:{}", task.getGroupName(), task.getJobName());
 
+        if (logService.alreadyAdded(task)) {
+            log.info("Task {} alrady added to scheduler, skipping", task);
+            return;
+        }
+
+        UriComponents uri =UriComponentsBuilder.fromHttpUrl(schedulerUrl)
+                .path(addTaskUri)
+                .build();
+
         HttpEntity<Task> request = new HttpEntity<>(task);
         ResponseEntity<Task> response =
-                restTemplate.postForEntity("http://localhost:8081/tpt-scheduler/api/v2/task", request, Task.class);
+                restTemplate.postForEntity(uri.toUriString(), request, Task.class);
 
-        if (response.getStatusCode().equals(HttpStatus.CREATED)) {
-            log.info("Successfully created taks group:{} name:{}", task.getGroupName(), task.getJobName());
-        } else {
-            log.error("Cannot create created taks group:{} name:{}", task.getGroupName(), task.getJobName());
-        }
+        logService.publishResult(task, response.getStatusCode().equals(HttpStatus.CREATED));
     }
 }

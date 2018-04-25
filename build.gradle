@@ -29,6 +29,7 @@ repositories {
 
 dependencies {
     compile("org.springframework.boot:spring-boot-starter-web:2.0.1.RELEASE")
+    compile group: 'commons-io', name: 'commons-io', version: '2.6'
     compileOnly 'org.projectlombok:lombok:1.16.20'
 
     apt "org.projectlombok:lombok:1.16.20"

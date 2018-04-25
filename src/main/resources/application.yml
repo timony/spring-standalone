@@ -1,2 +1,10 @@
+spring:
+  main:
+    web-application-type: none
+
+migration:
+  executionLog:
+    file.postfix: log
+
 scheduler:
   addTaskUri: /api/v2/task
