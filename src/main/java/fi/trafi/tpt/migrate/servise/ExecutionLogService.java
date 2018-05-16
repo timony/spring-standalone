@@ -50,7 +50,7 @@ public class ExecutionLogService {
 
     @PreDestroy
     public void preDestroy() {
-        log.info("Writing logs to {}", logFile);
+        log.info("Please check the result in {}", logFile);
         try {
             objectMapper.writeValue(logFile, executionLogs);
         } catch (IOException e) {
