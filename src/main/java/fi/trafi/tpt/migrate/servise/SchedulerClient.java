@@ -32,11 +32,11 @@ public class SchedulerClient {
         log.info("Creating {}", task);
 
         if (logService.alreadyAdded(task)) {
-            log.info("{} alrady added to scheduler, skipping", task);
+            log.info("{} already added to scheduler, skipping", task);
             return;
         }
 
-        UriComponents uri =UriComponentsBuilder.fromHttpUrl(schedulerUrl)
+        UriComponents uri = UriComponentsBuilder.fromHttpUrl(schedulerUrl)
                 .path(addTaskUri)
                 .build();
 
